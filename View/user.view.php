@@ -1,6 +1,6 @@
 <?php
 
-namespace deezer;
+namespace deezer\View;
 
 session_start();
 error_reporting(1);
