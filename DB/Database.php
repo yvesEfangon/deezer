@@ -10,15 +10,12 @@ namespace deezer\DB;
 
 class Database extends \PDO {
 
-    protected $driver;
-    protected  $host;
-    protected $port;
-    protected $dbUser;
-    protected $password;
-    protected $database;
-    protected $dns;
+  
+    /** @var  \PDOStatement */
+    protected $statement;
 
-
+    /** @var  string */
+    protected $className;
     /**
      * Database constructor.
      * @param string $conf
@@ -26,21 +23,23 @@ class Database extends \PDO {
      */
     public function __construct($conf="settings.ini"){
 
-        if (!$settings = parse_ini_file($conf, TRUE)) throw new \Exception('Unable to open ' . $conf . '.');
+        if (!$settings = parse_ini_file($conf, TRUE)){
+            throw new \Exception('Unable to open ' . $conf . '.');
+        }
 
 
-        $this->driver       = $settings['database']['driver'];
-        $this->host        = $settings['database']['host'];
-        $this->port        = $settings['database']['port'];
+        $driver       = $settings['database']['driver'];
+        $host        = $settings['database']['host'];
+        $port        = $settings['database']['port'];
 
-        $this->dbUser    = $settings['database']['username'];
-        $this->password    = $settings['database']['password'];
-        $this->database    = $settings['database']['schema'];
+        $dbUser    = $settings['database']['username'];
+        $password    = $settings['database']['password'];
+        $database    = $settings['database']['schema'];
 
-        $this->dns          = $this->driver.':host=' . $this->host .':port'.$this->port. ';dbname=' . $this->database;
+        $dns          = $driver.':host=' . $host .':port'.$port. ';dbname=' . $database;
 
         try{
-            parent::__construct($this->dns,$this->dbUser,$this->password);
+            parent::__construct($dns,$dbUser,$password);
         }catch (\PDOException $e){
             die($e->getMessage());
         };
@@ -48,136 +47,98 @@ class Database extends \PDO {
     }
 
     /**
-     * @return mixed
+     * @param $query
+     * @param array $options
+     * @return \PDOStatement
      */
-    public function getDriver()
-    {
-        return $this->driver;
+    public function prepareQuery($query, $options = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY]){
+
+
+            if( !($this->statement = $this->prepare($query, $options)) ){
+                throw new \Exception($this->getErrorMsg());
+            }
+
+        return $this->statement;
     }
 
     /**
-     * @param mixed $driver
-     * @return Database
+     * @param $parameters
+     * @throws \Exception
      */
-    public function setDriver($driver)
-    {
-        $this->driver = $driver;
+    public function setParameters($parameters){
 
-        return $this;
+        if(!isset($this->statement)){
+            throw new \Exception('Unable to find the PDOStatement object');
+        }
+
+        if(!is_array($parameters) || count($parameters) <= 0){
+            throw new \Exception('Please supply parameters');
+        }
+
+        $pattern = "#^\:#";
+        foreach ($parameters as $param => $value){
+            $param  = trim($param);
+
+            if(preg_match($pattern,$param)==1){
+                $this->statement->bindParam($param, $value);
+            } else{
+                $this->statement->bindParam(':'.$param, $value);
+            }
+        }
     }
 
     /**
-     * @return mixed
+     * @return array
+     * @throws \Exception
      */
-    public function getHost()
-    {
-        return $this->host;
+    public function fetchAllResults(){
+        if(!isset($this->statement)){
+            throw new \Exception('Unable to find the PDOStatement object');
+        }
+        
+        if( !($result = $this->query($this->statement->queryString)) ){
+            throw new \Exception($this->getErrorMsg());
+        }
+
+        if(isset($this->className) && class_exists($this->className)) {
+            $result->setFetchMode(self::FETCH_CLASS, $this->className);
+        }
+
+        return $result->fetchAll();
     }
 
     /**
-     * @param mixed $host
-     * @return Database
+     * @return int
+     * @throws \Exception
      */
-    public function setHost($host)
-    {
-        $this->host = $host;
+    public function execute(){
 
-        return $this;
-    }
+        if(!isset($this->statement)){
+            throw new \Exception('Unable to find the PDOStatement object');
+        }
 
-    /**
-     * @return mixed
-     */
-    public function getPort()
-    {
-        return $this->port;
-    }
+        $exe    = $this->exec($this->statement->queryString);
 
-    /**
-     * @param mixed $port
-     * @return Database
-     */
-    public function setPort($port)
-    {
-        $this->port = $port;
+        if($exe === false){
+            throw new \Exception($this->getErrorMsg());
+        }
 
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDbUser()
-    {
-        return $this->dbUser;
-    }
-
-    /**
-     * @param mixed $dbUser
-     * @return Database
-     */
-    public function setDbUser($dbUser)
-    {
-        $this->dbUser = $dbUser;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $password
-     * @return Database
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDatabase()
-    {
-        return $this->database;
-    }
-
-    /**
-     * @param mixed $database
-     * @return Database
-     */
-    public function setDatabase($database)
-    {
-        $this->database = $database;
-
-        return $this;
+        return $exe;
     }
 
     /**
      * @return string
      */
-    public function getDns()
-    {
-        return $this->dns;
+    public function getErrorMsg(){
+        $infos  = $this->errorInfo();
+
+        return 'SQLSTATE: '.$infos[0].' Driver Error Code: '.$infos[1].' Message: '.$infos[2];
     }
-
     /**
-     * @param string $dns
-     * @return Database
+     * @return \PDOStatement
      */
-    public function setDns($dns)
-    {
-        $this->dns = $dns;
-
-        return $this;
+    public function getPDOStatement(){
+        return $this->statement;
     }
 
 

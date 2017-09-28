@@ -8,77 +8,25 @@
 
 namespace deezer\Model;
 
+use deezer\Entity\User as userEntity;
 
 class User extends Model
 {
 
-    private $email;
-    private $password;
-    private $name;
-
-
     public function __construct()
     {
         parent::__construct();
+        
+        $this->setTable('user');
     }
 
-    /**
-     * @return mixed
-     */
-    public function getEmail()
-    {
-        return $this->email;
+    public function create(userEntity $user){
+
     }
+    
+    public function edit(userEntity $user){
 
-    /**
-     * @param mixed $email
-     * @return User
-     */
-    public function setEmail($email)
-    {
-        $this->email = $email;
-
-        return $this;
     }
-
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $password
-     * @return User
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param mixed $name
-     * @return User
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
 
 
 

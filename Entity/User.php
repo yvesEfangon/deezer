@@ -12,6 +12,7 @@ namespace deezer\Entity;
 class User
 {
 
+    protected $username;
     protected $email;
     protected $password;
     protected $name;
