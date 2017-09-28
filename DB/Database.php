@@ -1,144 +1,65 @@
 <?php
 namespace deezer\DB;
 
-class Database {// connexion à la base de donnees!
+class Database extends \PDO {
 
-    private $link;
-    private $host, $username, $password, $database;
+    protected $driver;
+    protected  $host;
+    protected $port;
+    protected $dbUser;
+    protected $password;
+    protected $database;
+    protected $dns;
+
 
     /**
      * Database constructor.
-     * @param string $host
-     * @param string $user
-     * @param string $pwd
-     * @param $dbName
+     * @param string $conf
      */
-    public function __construct($host ='127.0.0.1',$user ='root', $pwd='',$dbName){
-        $this->host        = $host;
-        $this->username    = $user;
-        $this->password    = $pwd;
-        $this->database    = $dbName;
-        
-        $this->link = mysqli_connect($this->host, $this->username, $this->password)
-            OR die("There was a problem connecting to the database.");
-        
-        mysqli_select_db($this->link,$this->database)
-            OR die("There was a problem selecting the database.");
-        
-        return $this->link;
-    }
+    public function __construct($conf="settings.ini"){
+
+        if (!$settings = parse_ini_file($conf, TRUE)) throw new \Exception('Unable to open ' . $conf . '.');
 
 
-    /**
-     * @param $str
-     * @return string
-     */
-    function sanitizeString($str) {
+        $this->driver       = $settings['database']['driver'];
+        $this->host        = $settings['database']['host'];
+        $this->port        = $settings['database']['port'];
 
-    $sanitize = mysqli_real_escape_string($this->link,stripslashes($str));
+        $this->dbUser    = $settings['database']['username'];
+        $this->password    = $settings['database']['password'];
+        $this->database    = $settings['database']['schema'];
 
-	return $sanitize;
+        $this->dns          = $this->driver.':host=' . $this->host .':port'.$this->port. ';dbname=' . $this->database;
+
+        try{
+            parent::__construct($this->dns,$this->dbUser,$this->password);
+        }catch (\PDOException $e){
+            die($e->getMessage());
+        };
+
     }
 
     /**
-     * @param $query
-     * @return array|null|string
+     * @return mixed
      */
-    public function loadAssoc($query) {// exécution des requetes! 
-    
-        mysqli_set_charset($this->link, "utf8");
-        
-        
-        $result = mysqli_query($this->link,$query);
-        
-        if (!$result) return '';
-        
-        return mysqli_fetch_assoc($result);
-    }
-
-    /**
-     * @param $query
-     * @return null|object|string
-     */
-    public  function loadObject($query){
-         mysqli_set_charset($this->link, "utf8");
-        
-        $result = mysqli_query($this->link,$query);
-        
-        if (!$result) return '';
-        
-        return mysqli_fetch_object($result);
-    }
-
-    /**
-     * @param $query
-     * @return bool|\mysqli_result
-     */
-    public function query($query){
-        
-         mysqli_set_charset($this->link, "utf8");
-        return  mysqli_query($this->link,$query);
-    }
-
-    /**
-     * @return string
-     */
-    function getErrorMsg(){
-         return mysqli_error($this->link);
-    }
-
-    /**
-     * @return int|string
-     */
-    public function insert_id(){
-       
-        return mysqli_insert_id($this->link);
-    }
-
-    /**
-     * @param $query
-     * @return bool|mixed
-     */
-    public function loadResult($query){
-        mysqli_set_charset($this->link, "utf8");
-        
-        $result = mysqli_query($this->link,$query);
-        
-        if (!$result) return FALSE;
-        
-        $tab    = mysqli_fetch_assoc($result);
-        return array_shift($tab);
-    }
-
-    /**
-     *
-     */
-    public function __destruct() {
-        mysqli_close($this->link)
-            OR die("There was a problem disconnecting from the database.");
-    }
-
-    /**
-     * @return mysqli
-     */
-    public function getLink()
+    public function getDriver()
     {
-        return $this->link;
+        return $this->driver;
     }
 
     /**
-     * @param mysqli $link
+     * @param mixed $driver
      * @return Database
      */
-    public function setLink($link)
+    public function setDriver($driver)
     {
-        $this->link = $link;
+        $this->driver = $driver;
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getHost()
     {
@@ -146,7 +67,7 @@ class Database {// connexion à la base de donnees!
     }
 
     /**
-     * @param string $host
+     * @param mixed $host
      * @return Database
      */
     public function setHost($host)
@@ -157,26 +78,45 @@ class Database {// connexion à la base de donnees!
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getUsername()
+    public function getPort()
     {
-        return $this->username;
+        return $this->port;
     }
 
     /**
-     * @param string $username
+     * @param mixed $port
      * @return Database
      */
-    public function setUsername($username)
+    public function setPort($port)
     {
-        $this->username = $username;
+        $this->port = $port;
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return mixed
+     */
+    public function getDbUser()
+    {
+        return $this->dbUser;
+    }
+
+    /**
+     * @param mixed $dbUser
+     * @return Database
+     */
+    public function setDbUser($dbUser)
+    {
+        $this->dbUser = $dbUser;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
      */
     public function getPassword()
     {
@@ -184,7 +124,7 @@ class Database {// connexion à la base de donnees!
     }
 
     /**
-     * @param string $password
+     * @param mixed $password
      * @return Database
      */
     public function setPassword($password)
@@ -209,6 +149,25 @@ class Database {// connexion à la base de donnees!
     public function setDatabase($database)
     {
         $this->database = $database;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDns()
+    {
+        return $this->dns;
+    }
+
+    /**
+     * @param string $dns
+     * @return Database
+     */
+    public function setDns($dns)
+    {
+        $this->dns = $dns;
 
         return $this;
     }

@@ -9,7 +9,7 @@
 namespace deezer\Model;
 
 
-use deezer\DB\Database as database;
+use deezer\DB\Database as DB;
 
 /**
  * Class Model
@@ -21,12 +21,12 @@ class Model{
 
     function __construct()
     {
-        $this->db   = new database('127.0.0.1','root', '','deezer');
+        $this->db   = new DB();
         
     }
 
     /**
-     * @return database
+     * @return DB
      */
     public function getDb()
     {
