@@ -15,6 +15,7 @@ class Database extends \PDO {
     /**
      * Database constructor.
      * @param string $conf
+     * @throws \Exception
      */
     public function __construct($conf="settings.ini"){
 
