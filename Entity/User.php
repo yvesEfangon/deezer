@@ -12,11 +12,16 @@ namespace deezer\Entity;
 class User
 {
 
+    protected $id;
     protected $username;
     protected $email;
     protected $password;
     protected $name;
 
+    public function getId(){
+        return $this->id;
+    }
+    
     /**
      * @return mixed
      */

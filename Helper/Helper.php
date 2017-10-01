@@ -3,13 +3,13 @@
  * Created by PhpStorm.
  * User: Yves Efangon
  * Date: 28/09/2017
- * Time: 15:50
+ * Time: 14:52
  */
 
 namespace deezer\Helper;
 
 /**
- * Class FormValidator
+ * Class Helper for post data validation
  */
 class Helper
 {
@@ -43,14 +43,19 @@ class Helper
     /**
      * Validates an array of items (if needed) and returns true or false
      *
+     * @param array $items
+     * @return bool
      */
     public function validate($items)
     {
         $this->fields = $items;
         $havefailures = false;
+
         foreach($items as $key=>$val)
         {
-            if((strlen($val) == 0 || array_search($key, $this->validations) === false) && array_search($key, $this->mandatories) === false)
+            if( (strlen($val) == 0 || in_array($key, $this->validations) === false) &&
+                in_array($key, $this->mandatories) === false
+            )
             {
                 $this->corrects[] = $key;
                 continue;
@@ -81,7 +86,7 @@ class Helper
     {
         foreach($items as $key=>$val)
         {
-            if(array_search($key, $this->sanatations) === false && !array_key_exists($key, $this->sanatations)) continue;
+            if(in_array($key, $this->sanatations) === false && !array_key_exists($key, $this->sanatations)) continue;
             $items[$key] = self::sanatizeItem($val, $this->validations[$key]);
         }
         return($items);

@@ -141,6 +141,9 @@ class Database extends \PDO {
         return $this->statement;
     }
 
+    public function setClassName($className){
+        $this->className    = $className;
+    }
 
 
 }
