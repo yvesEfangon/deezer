@@ -90,7 +90,7 @@ class Request
      * @return mixed|null|string
      */
     public static function getVar($varName, $type='string'){
-
+        
         $inputData  = $_SESSION['input'];
 
         if(!is_array($inputData) || $inputData == '' || is_null($inputData)){

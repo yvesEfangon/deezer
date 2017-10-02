@@ -6,17 +6,20 @@ var callback = function(){
 
    document.getElementById("add-user").addEventListener('click', function () {
         addUser();
+   });
+    document.getElementById("search-users").addEventListener('click', function () {
+        getUsers();
    })
 
 };
 
-var baseURL = '/router.php';
+var baseURL = '/application.php';
 
 function addUser() {
     var xhr = new XMLHttpRequest();
     var data = getData("form-create-user");
 
-    if(countProperties(data)<=0 || data['name']=='' || data['']){
+    if(countProperties(data)<=0 || data['username']=='' || data['email']==''){
         alert('Please supply data to create a user');
         return;
     }
@@ -27,15 +30,58 @@ function addUser() {
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onload = function() {
         if (xhr.status === 200) {
-            var userInfo = JSON.parse(xhr.responseText);
-            console.log(userInfo);
+            var result = JSON.parse(xhr.responseText);
+            var classResult;
+
+            if(result.status == false) classResult = 'error';
+            else classResult ='success';
+
+            document.getElementById("results-add").innerHTML = '<span class="'+classResult+'">'+result.message+'</span>';
         }else{
-            console.log(xhr.status);
-            console.log(xhr.message);
+            document.getElementById("results-add").innerHTML = '<span class="error">'+xhr.message+'</span>';
+        }
+
+        getUsers();
+    };
+
+    xhr.send(JSON.stringify(data));
+}
+
+/**
+ *
+ */
+function getUsers(){
+    var xhr = new XMLHttpRequest();
+    var data = getData("form-search-user");
+
+    data['controller']  = 'user';
+
+    xhr.open('POST', baseURL);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var users = JSON.parse(xhr.responseText);
+            displayUsersTable(users.data);
+        }else{
+            document.getElementById("display-users").innerHTML = '<span class="error">'+xhr.message+'</span>';
         }
     };
 
     xhr.send(JSON.stringify(data));
+}
+
+function displayUsersTable(users) {
+    var html    = [];
+    html.push("<table><tr><th>Name</th><th>Username</th><th>Email</th><th></th></tr>");
+
+    for(var i=0; i<users.length;i++){
+
+        html.push("<tr><td>"+users[i].name+"</td><td>"+users[i].username+"</td><td>"+users[i].email+"</td></tr>");
+    }
+
+    html.push('</table>');
+
+    document.getElementById("display-users").innerHTML  = html.join('');
 }
 
 function getData(divID){
@@ -52,7 +98,7 @@ function getData(divID){
             var eltName     = elt.name;
             var eltValue    = elt.value;
 
-            if(tagType == 'text' || tagType == 'number' || tagType == 'date' || tagType == 'radio'){
+            if(tagType == 'text' || tagType == 'number' || tagType == 'date' || tagType == 'radio'|| tagType == 'email'){
                 data[eltName]  = eltValue;
             }
 

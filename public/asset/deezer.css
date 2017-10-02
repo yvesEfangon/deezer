@@ -9,10 +9,15 @@ button:-moz-focusring, [type=button]:-moz-focusring, [type=reset]:-moz-focusring
 fieldset{border:1px solid #c0c0c0;margin:0 2px;padding:.35em .625em .75em}
 
 body{
-    max-width: 1200px;
+    max-width: 1500px;
     width: 100%;
 }
+table{
+    width: 100%;}
 .row{width: 100%;display: block}
 .row-3{width: 25%;float: left}
 .row-6{width: 50%;float: left}
 .center{text-align: center;}
+.margin-top-8{margin-top: 8px;}
+.error{color: #FF0000;}
+.success{color: darkgreen;}

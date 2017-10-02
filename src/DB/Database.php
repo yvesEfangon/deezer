@@ -30,14 +30,13 @@ class Database extends \PDO {
 
         $driver       = $settings['database']['driver'];
         $host        = $settings['database']['host'];
-        $port        = $settings['database']['port'];
 
         $dbUser    = $settings['database']['username'];
         $password    = $settings['database']['password'];
         $database    = $settings['database']['schema'];
 
-        $dns          = $driver.':host=' . $host .':port'.$port. ';dbname=' . $database;
-
+        $dns          = "$driver:host=$host;dbname=$database";
+        
         try{
             parent::__construct($dns,$dbUser,$password);
         }catch (\PDOException $e){
@@ -78,11 +77,12 @@ class Database extends \PDO {
         $pattern = "#^\:#";
         foreach ($parameters as $param => $value){
             $param  = trim($param);
-
+           // var_dump($param);
             if(preg_match($pattern,$param)==1){
+
                 $this->statement->bindParam($param, $value);
             } else{
-                $this->statement->bindParam(':'.$param, $value);
+                $this->statement->bindParam($param, $value);
             }
         }
     }

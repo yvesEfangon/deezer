@@ -2,21 +2,24 @@
 
 namespace deezer;
 
-use deezer\Controller\UserController as UserController;
-use deezer\Helper\Request as Request;
+use deezer\Controller\UserController ;
+use deezer\Helper\Request;
+
 
 class Deezer
 {
     public function execute(){
 
         $controller     = strtolower(Request::getVar('controller'));
-        $controllerName = ucfirst($controller).'Controller';
 
-        if(!class_exists($controllerName)){
-            echo Request::jsonResponse(array(),"The controller was not found",400);
+        switch ($controller){
+            case 'user':
+                $classController    = new UserController();
+                break;
+            case 'song':
+            default:
+                return Request::jsonResponse(array(),"The controller $controller was not found",400);
         }
-
-        $classController    = new UserController();
 
         $method         = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -25,7 +28,7 @@ class Deezer
             case 'GET':
             case 'POST':
                 //Read only
-                echo $classController->get();
+                return $classController->get();
                 break;
             case 'DELETE':
                 //Write only
@@ -33,7 +36,7 @@ class Deezer
                 break;
             case 'PUT':
                 //Write only
-                $classController->put();
+                return $classController->put();
                 break;
         }
     }

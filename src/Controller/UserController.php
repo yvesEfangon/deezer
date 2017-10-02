@@ -8,25 +8,22 @@
 
 namespace deezer\Controller;
 
+use deezer\DB\Database;
 use deezer\Helper\Request;
 
 /**
  * Class UserController
  * @package deezer\Controller
  */
-class UserController
+class UserController extends Controller
 {
-    private $db;
+
     /**
      * Controller constructor.
      */
     public function __construct()
     {
-        $this->db  = new deezer\DB\Database();
-    }
-
-    public function getDB(){
-        return $this->db;
+        parent::__construct();
     }
 
     /**
@@ -49,33 +46,39 @@ class UserController
         
         if($id != ''){
             $where[]    = "id = :id";
-            $parameters['id']   = $id;
+            $parameters[':id']   = $id;
         }else {
 
             if ($email != '') {
                 $where[] = "email like :email ";
-                $parameters['email'] = $email;
+                $parameters[':email'] = $email;
             }
 
             if ($name != '') {
                 $where[] = "name LIKE :name";
-                $parameters['name'] = $name;
+                $parameters[':name'] = $name;
             }
 
             if ($username != '') {
-                $where[] = "username like :username ";
-                $parameters['username'] = $username;
+                $where[] = " username like :username ";
+                $parameters[':username'] = $username;
             }
         }
         
         if(count($where)<=0){
-            return Request::jsonResponse([],"Please supply at least one criteria",400);
+            //return Request::jsonResponse([],"Please supply at least one criteria",400);
+            $query  .= ' 1';
+            $db->prepareQuery($query);
+        }else{
+            $query      .= implode(' AND ',$where);
+            $db->prepareQuery($query);
+            $db->getPDOStatement()->execute($parameters);//setParameters($parameters);
+            var_dump($db->getPDOStatement()->queryString);
         }
         
-        $query      .= implode(' AND ',$where);
-        $db->prepareQuery($query);
-        $db->setParameters($parameters);
-        $db->setClassName('deezer\Entity\User');
+
+
+        //$db->setClassName('deezer\Entity\User');
 
         $results        = array();
 
