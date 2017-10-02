@@ -6,9 +6,9 @@
  * Time: 15:59
  */
 
-namespace deezer\Controller;
+namespace deezer\src\Controller;
 
-use deezer\DB\Database;
+use deezer\src\DB\Database;
 
 class Controller
 {

@@ -22,7 +22,7 @@ class UserController
      */
     public function __construct()
     {
-        $this->db  = new \deezer\DB\Database();
+        $this->db  = new deezer\DB\Database();
     }
 
     public function getDB(){

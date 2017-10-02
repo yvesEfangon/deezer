@@ -10,7 +10,7 @@ var callback = function(){
 
 };
 
-var baseURL = '/deezer.php';
+var baseURL = '/router.php';
 
 function addUser() {
     var xhr = new XMLHttpRequest();

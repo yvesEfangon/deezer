@@ -6,7 +6,7 @@
  * Time: 14:52
  */
 
-namespace deezer\Helper;
+namespace deezer\src\Helper;
 
 /**
  * Class Helper for post data validation
