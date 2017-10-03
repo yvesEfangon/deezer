@@ -8,8 +8,7 @@
 
 namespace deezer\Model;
 
-
-use deezer\DB\Database as DB;
+use deezer\DB\Database;
 
 /**
  * Class Model
@@ -17,7 +16,7 @@ use deezer\DB\Database as DB;
  */
 class Model{
 
-    /** @var DB */
+    /** @var Database */
     private $db;
 
     private $table;
@@ -27,12 +26,12 @@ class Model{
      */
     public function __construct()
     {
-        $this->db   = new DB();
+        $this->db   = new Database();
         
     }
 
     /**
-     * @return DB
+     * @return Database
      */
     public function getDb()
     {
@@ -91,16 +90,34 @@ class Model{
         return $this->db->execute();
     }
 
-    /**
-     * @param string $query
-     * @param array $parameters
-     * @return array
-     */
-    public function findAllBy($query,$parameters){
-        $this->setQuery($query, $parameters);
 
-        return $this->loadResults();
+    public function findAllBy($criteria){
+
+        $db         = $this->getDb();
+
+        $query      = "SELECT * FROM ".$this->getTable()." WHERE ";
+        $where      = $db->setWhere($criteria);
+
+        if($where == ''){
+            $query  .= ' 1';
+        }else{
+            $query      .= $where;
+        }
+
+        $db->setParameters($criteria);
+
+        $statement = $db->prepare($query, array(\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY));
+
+        if( $statement->execute($db->getParameters())){
+            return $statement->fetchAll();
+        }else{
+            throw new \Exception("SQL statement error");
+            return false;
+        }
+
     }
+
+
 
 }
 ?>

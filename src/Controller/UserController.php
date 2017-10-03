@@ -8,8 +8,10 @@
 
 namespace deezer\Controller;
 
-use deezer\DB\Database;
+use deezer\Entity\UserEntity;
 use deezer\Helper\Request;
+use deezer\Model\UserModel;
+
 
 /**
  * Class UserController
@@ -33,57 +35,18 @@ class UserController extends Controller
 
     public function get()
     {
-        $name       = Request::getString('name');
-        $username   = Request::getString('username');
-        $email      = Request::getEmail('email');
-        $id         = Request::getInt('id');
+        $criteria   = array();
+        $criteria['name']       = Request::getString('name');
+        $criteria['username']   = Request::getString('username');
+        $criteria['email']      = Request::getString('email');
+        $criteria['id']         = Request::getString('id');
 
-        $db         = $this->getDB();
-
-        $query      = "SELECT * FROM user WHERE ";
-        $where      = array();
-        $parameters = array();
-        
-        if($id != ''){
-            $where[]    = "id = :id";
-            $parameters[':id']   = $id;
-        }else {
-
-            if ($email != '') {
-                $where[] = "email like :email ";
-                $parameters[':email'] = $email;
-            }
-
-            if ($name != '') {
-                $where[] = "name LIKE :name";
-                $parameters[':name'] = $name;
-            }
-
-            if ($username != '') {
-                $where[] = " username like :username ";
-                $parameters[':username'] = $username;
-            }
-        }
-        
-        if(count($where)<=0){
-            //return Request::jsonResponse([],"Please supply at least one criteria",400);
-            $query  .= ' 1';
-            $db->prepareQuery($query);
-        }else{
-            $query      .= implode(' AND ',$where);
-            $db->prepareQuery($query);
-            $db->getPDOStatement()->execute($parameters);//setParameters($parameters);
-            var_dump($db->getPDOStatement()->queryString);
-        }
-        
-
-
-        //$db->setClassName('deezer\Entity\User');
+        $model  = new UserModel();
 
         $results        = array();
 
         try{
-            $results = $db->fetchAllResults();
+            $results = $model->findAllBy($criteria);
             $message    = "200 OK";
             $status     = 200;
         }catch (\Exception $e){
@@ -102,20 +65,16 @@ class UserController extends Controller
         $password   = Request::getString('password');
 
         if($username == '' || $email == ''){
-            return Request::jsonResponse([],"The username and the must are mandatory",400);
+            return Request::jsonResponse([],"The username and the email must are mandatory",400);
         }
 
-        $query  = "INSERT INTO `user`(`username`, `email`, `password`, `name`) VALUES ('$username', '$email', '$password', '$name')";
-        $db     = $this->getDB();
-
-        $db->prepareQuery($query);
-
-        try {
-           $db->execute();
-            return Request::jsonResponse([],"1 User added", 200);
-        }catch (\Exception $e){
-            return Request::jsonResponse([],$e->getMessage(),400);
-        }
+        $user   = new UserEntity();
+        $user->setEmail($email);
+        $user->setName($name);
+        $user->setUsername($username);
+        $user->setPassword($password);
+        $model  = new UserModel();
+        return $model->create($user);
 
     }
 }

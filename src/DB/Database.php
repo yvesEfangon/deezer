@@ -14,8 +14,14 @@ class Database extends \PDO {
     /** @var  \PDOStatement */
     protected $statement;
 
+    /** @var  array */
+    protected $parameters;
+
     /** @var  string */
     protected $className;
+
+    protected $error;
+
     /**
      * Database constructor.
      * @param string $conf
@@ -64,28 +70,43 @@ class Database extends \PDO {
      * @param $parameters
      * @throws \Exception
      */
-    public function setParameters($parameters){
-
-        if(!isset($this->statement)){
-            throw new \Exception('Unable to find the PDOStatement object');
-        }
-
-        if(!is_array($parameters) || count($parameters) <= 0){
-            throw new \Exception('Please supply parameters');
-        }
-
-        $pattern = "#^\:#";
-        foreach ($parameters as $param => $value){
-            $param  = trim($param);
-           // var_dump($param);
-            if(preg_match($pattern,$param)==1){
-
-                $this->statement->bindParam($param, $value);
-            } else{
-                $this->statement->bindParam($param, $value);
+    public function setParameters($parameters = array()){
+        $params = array();
+        foreach ($parameters as $key=>$value){
+            if($value != ''){
+                $params[':'.$key]   = $value;
             }
         }
+       $this->parameters    = $params;
     }
+
+    /**
+     * @param $criteria
+     * @param string $operator
+     * @return string
+     */
+    public function setWhere($criteria, $operator='AND'){
+        $where  = array();
+
+        foreach ($criteria as $key=>$value){
+            if($value != '' && !is_null($value))
+                $where[]    = " $key LIKE :$key ";
+        }
+
+        if(count($where)<=0) return '';
+
+        return implode(" $operator ",$where);
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+
 
     /**
      * @return array
@@ -108,23 +129,57 @@ class Database extends \PDO {
     }
 
     /**
-     * @return int
-     * @throws \Exception
+     * @param $query
+     * @return bool|\PDOStatement
      */
-    public function execute(){
+    public function run($query) {
+        $this->error = "";
 
-        if(!isset($this->statement)){
-            throw new \Exception('Unable to find the PDOStatement object');
+        try {
+            $this->prepareQuery((string) $query);
+            foreach ($this->getParameters() as $bind => $value) {
+                $type = \PDO::PARAM_STR;
+
+                switch (gettype($value)) {
+                    case 'integer':
+                        $type = \PDO::PARAM_INT;
+                        $value = (integer) $value;
+                        break;
+                    case 'string':
+                        $type = \PDO::PARAM_STR;
+                        $value = (string) $value;
+                        break;
+                    case 'boolean':
+                        $type = \PDO::PARAM_BOOL;
+                        $value = (boolean) $value;
+                        break;
+                    case 'NULL':
+                        $type = \PDO::PARAM_NULL;
+                        break;
+                }
+
+                $this->getPDOStatement()->bindValue($bind, $value, $type);
+            }
+
+            if ($this->getPDOStatement()->execute() !== FALSE) {
+                return $this->getPDOStatement();
+            }else{
+                throw new \Exception("PDO error: ".$this->getErrorMsg());
+            }
         }
-
-        $exe    = $this->exec($this->statement->queryString);
-
-        if($exe === false){
-            throw new \Exception($this->getErrorMsg());
+        catch (\PDOException $e) {
+            $this->error = $e->getMessage();
+            return false;
         }
-
-        return $exe;
     }
+
+    /**
+     * @return mixed
+     */
+    function getRunError(){
+        return $this->error;
+    }
+
 
     /**
      * @return string

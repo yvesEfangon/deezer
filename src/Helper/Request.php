@@ -106,6 +106,7 @@ class Request
 
     }
 
+
     /**
      * @param $varName
      * @return mixed|null|string

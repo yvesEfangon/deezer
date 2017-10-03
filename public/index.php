@@ -40,9 +40,9 @@
 </div>
 
 </body>
-<script src="asset/deezer.js"></script>
+<script src="asset/deezer.js" type="application/javascript"></script>
 
-<script>
+<script type="application/javascript">
     if (
         document.readyState === "complete" ||
         (document.readyState !== "loading" && !document.documentElement.doScroll)

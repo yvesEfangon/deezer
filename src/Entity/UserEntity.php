@@ -9,7 +9,7 @@
 namespace deezer\Entity;
 
 
-class User
+class UserEntity
 {
 
     protected $id;
@@ -75,6 +75,25 @@ class User
     public function setName($name)
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @param mixed $username
+     * @return UserEntity
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
 
         return $this;
     }

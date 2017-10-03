@@ -29,8 +29,8 @@ function addUser() {
     xhr.open('PUT', baseURL);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onload = function() {
+        var result = JSON.parse(xhr.responseText);
         if (xhr.status === 200) {
-            var result = JSON.parse(xhr.responseText);
             var classResult;
 
             if(result.status == false) classResult = 'error';
@@ -38,9 +38,10 @@ function addUser() {
 
             document.getElementById("results-add").innerHTML = '<span class="'+classResult+'">'+result.message+'</span>';
         }else{
-            document.getElementById("results-add").innerHTML = '<span class="error">'+xhr.message+'</span>';
+            document.getElementById("results-add").innerHTML = '<span class="error">'+result.message+'</span>';
         }
-
+        resetForm("form-search-user");
+        resetForm("form-create-user");
         getUsers();
     };
 
@@ -72,16 +73,25 @@ function getUsers(){
 
 function displayUsersTable(users) {
     var html    = [];
-    html.push("<table><tr><th>Name</th><th>Username</th><th>Email</th><th></th></tr>");
+    html.push("<table><tr><th>ID</th><th>Name</th><th>Username</th><th>Email</th><th></th></tr>");
 
     for(var i=0; i<users.length;i++){
 
-        html.push("<tr><td>"+users[i].name+"</td><td>"+users[i].username+"</td><td>"+users[i].email+"</td></tr>");
+        html.push("<tr><td>"+users[i].id+"</td><td>"+users[i].name+"</td><td>"+users[i].username+"</td><td>"+users[i].email+"</td></tr>");
     }
 
     html.push('</table>');
 
     document.getElementById("display-users").innerHTML  = html.join('');
+}
+
+function resetForm(formID) {
+    var elts    = document.getElementById(formID).children;
+
+    for(var i=0; i<elts.length; i++) {
+        var elt = elts[i];
+        elt.value = '';
+    }
 }
 
 function getData(divID){
