@@ -35,7 +35,15 @@
         </div>
     </div>
     <div class="row-3">
-        La droite
+        <div class="row" id="form-create-user">
+            <h4 class="center">Add a song</h4>
+            <label for="artist">Artist</label> <input type="text" name="artist" id="artist"><br>
+            <label for="title">Title</label> <input type="text" name="title" id="title"><br>
+            <button id="add-song">Add</button>
+        </div>
+        <div class="row margin-top-8" id="results-add">
+
+        </div>
     </div>
 </div>
 
@@ -49,7 +57,10 @@
     ) {
         callback();
     } else {
-        document.addEventListener("DOMContentLoaded", callback);
+        document.addEventListener("DOMContentLoaded", function (event) {
+            callback();
+            getUsers();
+        });
     }
 </script>
 </html>
